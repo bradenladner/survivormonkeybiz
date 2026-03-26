@@ -1,0 +1,1348 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Survivor 50 — Fantasy League</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700;900&family=Cinzel+Decorative:wght@400;700&family=Crimson+Text:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --jungle:       #07100500;
+      --bg:           #090F07;
+      --surface:      #0E1A0B;
+      --card:         #111D0E;
+      --card2:        #162212;
+      --border:       #243B1A;
+      --border2:      #1A2D12;
+      --torch:        #E85D04;
+      --torch-bright: #FF7A2B;
+      --gold:         #E8A820;
+      --gold-light:   #F5C55A;
+      --parchment:    #F0DDBA;
+      --parchment-dim:#9E917A;
+      --smoke:        #6A7E65;
+      --red:          #C05050;
+      --green:        #5AA845;
+      --purple:       #9060C8;
+    }
+    * { margin:0; padding:0; box-sizing:border-box; }
+
+    body {
+      background: var(--bg);
+      color: var(--parchment);
+      font-family: 'Crimson Text', Georgia, serif;
+      min-height: 100vh;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='60' height='60'%3E%3Cpath d='M30 2L58 30L30 58L2 30Z' fill='none' stroke='%23E8A820' stroke-width='0.4' opacity='0.15'/%3E%3Cpath d='M30 12L48 30L30 48L12 30Z' fill='none' stroke='%23E8A820' stroke-width='0.3' opacity='0.1'/%3E%3C/svg%3E");
+    }
+
+    /* ── HEADER ── */
+    header {
+      text-align: center;
+      padding: 44px 20px 28px;
+      border-bottom: 1px solid var(--border);
+      background: linear-gradient(180deg, #0A1508 0%, transparent 100%);
+      position: relative;
+    }
+    .eyebrow {
+      font-family: 'Cinzel', serif;
+      font-size: 10px;
+      letter-spacing: .5em;
+      color: var(--gold);
+      margin-bottom: 10px;
+    }
+    .logo {
+      font-family: 'Cinzel Decorative', serif;
+      font-size: clamp(30px, 6vw, 62px);
+      font-weight: 700;
+      color: var(--parchment);
+      text-shadow: 0 0 60px rgba(232,93,4,.35), 0 3px 8px rgba(0,0,0,.9);
+      letter-spacing: .06em;
+      line-height: 1;
+    }
+    .logo em { color: var(--torch); font-style: normal; }
+    .sub {
+      font-family: 'Cinzel', serif;
+      font-size: 13px;
+      letter-spacing: .35em;
+      color: var(--parchment-dim);
+      margin-top: 8px;
+    }
+    .ep-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 18px;
+      padding: 6px 18px;
+      border: 1px solid rgba(232,168,32,.4);
+      border-radius: 2px;
+      font-family: 'Cinzel', serif;
+      font-size: 10px;
+      letter-spacing: .3em;
+      color: var(--gold);
+    }
+    .ep-dot { width:6px; height:6px; border-radius:50%; background:var(--torch); display:inline-block; animation: pulse 2s ease-in-out infinite; }
+    @keyframes pulse { 0%,100%{opacity:1;} 50%{opacity:.4;} }
+
+    /* ── NAV ── */
+    nav {
+      display: flex;
+      justify-content: center;
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      position: sticky;
+      top: 0;
+      z-index: 200;
+    }
+    .nav-btn {
+      font-family: 'Cinzel', serif;
+      font-size: 11px;
+      letter-spacing: .3em;
+      text-transform: uppercase;
+      padding: 16px 36px;
+      background: none;
+      border: none;
+      color: var(--smoke);
+      cursor: pointer;
+      position: relative;
+      transition: color .2s;
+    }
+    .nav-btn:hover { color: var(--parchment); }
+    .nav-btn.active { color: var(--torch); }
+    .nav-btn.active::after {
+      content:'';
+      position:absolute; bottom:0; left:16px; right:16px; height:2px;
+      background: var(--torch);
+      border-radius: 1px 1px 0 0;
+    }
+
+    /* ── MAIN ── */
+    main { max-width: 1080px; margin: 0 auto; padding: 40px 20px 80px; }
+    .tab { display:none; }
+    .tab.active { display:block; animation: fadeUp .35s ease both; }
+    @keyframes fadeUp { from{opacity:0;transform:translateY(10px);} to{opacity:1;transform:translateY(0);} }
+
+    /* ── SCOREBOARD ── */
+    .standings { display: flex; flex-direction: column; gap: 10px; }
+    .s-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-left: 3px solid var(--team-color, var(--torch));
+      border-radius: 4px;
+      padding: 18px 22px;
+      display: grid;
+      grid-template-columns: 54px 1fr auto;
+      align-items: center;
+      gap: 18px;
+      transition: transform .18s, border-color .18s;
+      animation: fadeUp .4s ease both;
+    }
+    .s-card:nth-child(1){animation-delay:.05s}
+    .s-card:nth-child(2){animation-delay:.10s}
+    .s-card:nth-child(3){animation-delay:.15s}
+    .s-card:nth-child(4){animation-delay:.20s}
+    .s-card:nth-child(5){animation-delay:.25s}
+    .s-card:hover { transform: translateX(3px); border-color: var(--team-color, var(--torch)); }
+    .s-card.rank1 { background: linear-gradient(135deg, #141200, var(--card)); border-color: var(--gold); }
+    .rank-num {
+      font-family: 'Cinzel', serif;
+      font-size: 30px;
+      font-weight: 900;
+      color: var(--smoke);
+      text-align: center;
+      line-height: 1;
+    }
+    .rank-num.top { color: var(--gold); }
+    .flame { font-size: 28px; text-align: center; animation: flicker 1.6s ease-in-out infinite; }
+    @keyframes flicker { 0%,100%{transform:scaleY(1) rotate(-1deg);} 33%{transform:scaleY(1.04) rotate(1deg);} 66%{transform:scaleY(.97) rotate(-1deg);} }
+    .s-info h2 {
+      font-family: 'Cinzel', serif;
+      font-size: 17px;
+      font-weight: 700;
+      color: var(--parchment);
+      margin-bottom: 3px;
+    }
+    .s-meta {
+      font-size: 13px;
+      color: var(--smoke);
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin-bottom: 8px;
+    }
+    .ep-scores { display: flex; gap: 4px; flex-wrap: wrap; margin-top: 6px; }
+    .ep-pip {
+      font-family: 'Cinzel', serif;
+      font-size: 10px;
+      padding: 2px 7px;
+      border-radius: 2px;
+      background: var(--surface);
+      color: var(--parchment-dim);
+      border: 1px solid var(--border2);
+      min-width: 30px;
+      text-align: center;
+    }
+    .ep-pip.neg { color: var(--red); }
+    .ep-pip.label { background: none; border-color: transparent; color: var(--smoke); font-size: 9px; letter-spacing:.2em; }
+    .s-score { text-align: right; }
+    .s-pts {
+      font-family: 'Cinzel', serif;
+      font-size: 38px;
+      font-weight: 900;
+      color: var(--parchment);
+      line-height: 1;
+    }
+    .s-pts-label { font-family: 'Cinzel', serif; font-size: 9px; letter-spacing:.25em; color: var(--smoke); display:block; margin-top:2px; }
+    .s-bar { height: 3px; background: var(--border); border-radius: 2px; margin-top: 10px; overflow: hidden; }
+    .s-bar-fill { height:100%; background: var(--team-color, var(--torch)); border-radius:2px; transition: width 1.2s cubic-bezier(.4,0,.2,1); }
+    .eliminated-badge { font-family:'Cinzel',serif; font-size:9px; letter-spacing:.15em; padding:2px 7px; border-radius:2px; }
+    .eb-active   { color:var(--green);  background:rgba(90,168,69,.12);  border:1px solid rgba(90,168,69,.25); }
+    .eb-dead     { color:var(--red);    background:rgba(192,80,80,.12);  border:1px solid rgba(192,80,80,.25); }
+
+    /* ── ROSTERS ── */
+    .rosters-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(290px, 1fr)); gap: 18px; }
+    .r-card { background: var(--card); border: 1px solid var(--border); border-radius: 4px; overflow: hidden; }
+    .r-head {
+      padding: 14px 18px;
+      border-bottom: 2px solid var(--team-color, var(--torch));
+      background: linear-gradient(135deg, rgba(255,255,255,.02) 0%, transparent 100%);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .r-head-info h3 { font-family:'Cinzel',serif; font-size:15px; font-weight:700; color:var(--parchment); }
+    .r-owner { font-size:12px; color: var(--smoke); margin-top:2px; }
+    .r-total { font-family:'Cinzel',serif; font-size:26px; font-weight:900; color: var(--gold); }
+    .r-total-label { font-size:9px; font-family:'Cinzel',serif; letter-spacing:.2em; color:var(--smoke); text-align:right; }
+
+    .player-list { }
+    .p-row {
+      padding: 9px 18px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      border-bottom: 1px solid rgba(36,59,26,.6);
+      transition: background .15s;
+    }
+    .p-row:last-child { border-bottom: none; }
+    .p-row:hover { background: var(--card2); }
+    .p-row.dead { opacity: .5; }
+    .p-dot { width:7px; height:7px; border-radius:50%; flex-shrink:0; }
+    .dot-active     { background: var(--green); }
+    .dot-eliminated { background: var(--red); }
+    .dot-jury       { background: var(--purple); }
+    .dot-winner     { background: var(--gold); }
+    .p-info { flex: 1; }
+    .p-name { font-size:15px; font-weight:600; color:var(--parchment); line-height:1.2; }
+    .p-sub { font-size:12px; color: var(--smoke); }
+    .p-pts { font-family:'Cinzel',serif; font-size:18px; font-weight:700; color:var(--parchment); }
+    .p-pts.neg { color: var(--red); }
+
+    .ghost-bar {
+      padding: 10px 18px;
+      background: rgba(232,168,32,.05);
+      border-top: 1px solid rgba(232,168,32,.2);
+      font-size: 13px;
+    }
+    .ghost-title { font-family:'Cinzel',serif; font-size:9px; letter-spacing:.25em; color:var(--gold); display:block; margin-bottom:4px; }
+    .ghost-pick { color: var(--gold-light); }
+
+    .power-bar {
+      padding: 8px 18px;
+      background: rgba(232,93,4,.04);
+      border-top: 1px solid rgba(232,93,4,.15);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .power-title { font-family:'Cinzel',serif; font-size:9px; letter-spacing:.25em; color:var(--torch); }
+    .power-pips { display:flex; gap:5px; }
+    .power-pip { width:10px; height:10px; border-radius:50%; background:var(--torch); }
+    .power-pip.used { background: var(--border); }
+
+    /* ── ADMIN ── */
+    .admin-block {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 24px;
+      margin-bottom: 22px;
+    }
+    .admin-block h3 {
+      font-family:'Cinzel',serif; font-size:12px; letter-spacing:.3em; color:var(--gold); text-transform:uppercase;
+      margin-bottom:20px; padding-bottom:12px; border-bottom:1px solid var(--border);
+    }
+    .form-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 12px; }
+    .field { display:flex; flex-direction:column; gap:5px; }
+    .field label { font-family:'Cinzel',serif; font-size:9px; letter-spacing:.2em; color:var(--smoke); text-transform:uppercase; }
+    .field input, .field select {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 3px;
+      color: var(--parchment);
+      padding: 8px 12px;
+      font-family: 'Crimson Text', serif;
+      font-size: 15px;
+      width: 100%;
+      transition: border-color .15s;
+    }
+    .field input:focus, .field select:focus { outline:none; border-color: var(--torch); }
+
+    .player-score-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 8px; margin-top: 16px; }
+    .ps-item {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 3px;
+      padding: 10px 14px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .ps-item .p-dot { flex-shrink:0; }
+    .ps-item .ps-name { flex:1; font-size:14px; }
+    .ps-item .ps-status { font-family:'Cinzel',serif; font-size:8px; letter-spacing:.1em; color:var(--smoke); }
+    .ps-input {
+      background: var(--card2) !important;
+      border: 1px solid var(--border2) !important;
+      border-radius: 3px;
+      color: var(--parchment) !important;
+      padding: 5px 8px;
+      font-family: 'Cinzel', serif;
+      font-size: 15px;
+      width: 66px !important;
+      text-align: center;
+    }
+
+    .status-grid { display:grid; grid-template-columns: repeat(auto-fill, minmax(240px,1fr)); gap:8px; }
+    .status-item {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 3px;
+      padding: 10px 14px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .status-item .si-name { flex:1; font-size:14px; }
+    .status-item select {
+      background: var(--card2);
+      border: 1px solid var(--border2);
+      border-radius:3px;
+      color: var(--parchment);
+      padding: 4px 8px;
+      font-family:'Crimson Text',serif;
+      font-size:13px;
+    }
+
+    .ghost-admin-grid { display:grid; grid-template-columns: repeat(auto-fill, minmax(300px,1fr)); gap:10px; margin-top:12px; }
+    .ghost-team-block {
+      background:var(--surface);
+      border:1px solid var(--border);
+      border-radius:3px;
+      padding:12px 16px;
+    }
+    .ghost-team-name { font-family:'Cinzel',serif; font-size:11px; letter-spacing:.2em; color:var(--gold); margin-bottom:10px; }
+    .ghost-fields { display:flex; gap:8px; align-items:flex-end; }
+    .ghost-fields .field { flex:1; }
+    .ghost-fields .pts-field { width:80px; }
+
+    .btn {
+      display:inline-flex; align-items:center; gap:8px;
+      font-family:'Cinzel',serif; font-size:11px; letter-spacing:.25em; text-transform:uppercase;
+      padding: 11px 26px;
+      border: 1px solid var(--torch);
+      background: none;
+      color: var(--torch);
+      cursor: pointer;
+      border-radius: 2px;
+      transition: all .18s;
+    }
+    .btn:hover { background: var(--torch); color: var(--bg); }
+    .btn-gold { border-color:var(--gold); color:var(--gold); }
+    .btn-gold:hover { background:var(--gold); color:var(--bg); }
+    .btn-sm { padding:7px 16px; font-size:10px; }
+    .btn-row { display:flex; gap:10px; margin-top:18px; align-items:center; }
+
+    .toast {
+      position:fixed; bottom:30px; right:30px; z-index:9999;
+      background:var(--surface); border:1px solid var(--gold);
+      border-left: 3px solid var(--gold);
+      padding:12px 20px;
+      font-family:'Cinzel',serif; font-size:11px; letter-spacing:.15em; color:var(--gold);
+      border-radius:3px;
+      transform:translateX(200%);
+      transition:transform .3s ease;
+    }
+    .toast.show { transform:translateX(0); }
+
+    .section-sep { border:none; border-top: 1px solid var(--border); margin: 0 0 24px; }
+    .settings-row { display:flex; gap:12px; flex-wrap:wrap; }
+    .admin-note { font-size:13px; color:var(--smoke); margin-bottom:14px; }
+
+    /* ── RULES ── */
+    .rules-header {
+      text-align: center;
+      padding: 36px 20px 40px;
+    }
+    .rules-eyebrow {
+      font-family: 'Cinzel', serif;
+      font-size: 9px;
+      letter-spacing: .5em;
+      color: var(--smoke);
+      margin-bottom: 10px;
+    }
+    .rules-title {
+      font-family: 'Cinzel Decorative', serif;
+      font-size: clamp(22px, 4vw, 40px);
+      font-weight: 700;
+      color: var(--parchment);
+      text-shadow: 0 0 40px rgba(232,93,4,.3);
+    }
+    .rules-tagline {
+      font-style: italic;
+      color: var(--parchment-dim);
+      font-size: 16px;
+      margin-top: 10px;
+      max-width: 540px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+    .rules-columns {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 18px;
+      align-items: start;
+    }
+    @media(max-width: 720px) {
+      .rules-columns { grid-template-columns: 1fr; }
+    }
+    .rules-col { display: flex; flex-direction: column; gap: 18px; }
+    .rules-block {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 22px 22px 18px;
+      position: relative;
+    }
+    .rules-block-icon {
+      position: absolute;
+      top: 18px; right: 18px;
+      font-size: 22px;
+      opacity: .5;
+    }
+    .rules-block-title {
+      font-family: 'Cinzel', serif;
+      font-size: 14px;
+      font-weight: 700;
+      letter-spacing: .15em;
+      color: var(--torch);
+      text-transform: uppercase;
+    }
+    .rules-sub {
+      font-family: 'Cinzel', serif;
+      font-size: 9px;
+      letter-spacing: .2em;
+      color: var(--smoke);
+      margin-top: 3px;
+    }
+    .rules-divider {
+      border: none;
+      border-top: 1px solid var(--border);
+      margin: 12px 0 14px;
+    }
+    .rules-phase-label {
+      font-family: 'Cinzel', serif;
+      font-size: 9px;
+      letter-spacing: .25em;
+      color: var(--gold);
+      text-transform: uppercase;
+      margin-bottom: 6px;
+    }
+    .rules-prose {
+      font-size: 14px;
+      color: var(--parchment-dim);
+      line-height: 1.6;
+    }
+    .rule-list { display: flex; flex-direction: column; gap: 2px; }
+    .rule-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 7px 10px;
+      border-radius: 3px;
+      transition: background .12s;
+    }
+    .rule-row:hover { background: var(--card2); }
+    .rule-label { font-size: 14px; color: var(--parchment-dim); }
+    .rule-val { font-family: 'Cinzel', serif; font-size: 15px; font-weight: 700; color: var(--parchment); }
+    .rule-val.green { color: var(--green); }
+    .rule-val.red   { color: var(--red); }
+    .rule-val.gold  { color: var(--gold); }
+    .rule-sep { border-top: 1px solid var(--border2); margin: 8px 0; }
+
+    .milestone-list .rule-row { background: rgba(232,168,32,.03); }
+    .winner-row {
+      background: linear-gradient(135deg, rgba(232,93,4,.12), rgba(232,168,32,.12)) !important;
+      border: 1px solid rgba(232,168,32,.25);
+      border-radius: 3px;
+      margin-top: 4px;
+    }
+
+    .underdog-boost {
+      margin-top: 14px;
+      padding: 12px 14px;
+      background: rgba(232,93,4,.06);
+      border: 1px solid rgba(232,93,4,.2);
+      border-radius: 3px;
+    }
+    .ub-title {
+      font-family: 'Cinzel', serif;
+      font-size: 10px;
+      letter-spacing: .2em;
+      color: var(--torch);
+      margin-bottom: 5px;
+    }
+    .ub-text { font-size: 13px; color: var(--parchment-dim); line-height: 1.5; }
+    .ub-text strong { color: var(--torch-bright); }
+
+    .power-cards { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    .power-card {
+      padding: 12px 14px;
+      background: var(--surface);
+      border: 1px solid rgba(255,255,255,.06);
+      border-left: 3px solid var(--pc, var(--torch));
+      border-radius: 3px;
+      transition: background .15s;
+    }
+    .power-card:hover { background: var(--card2); }
+    .pc-name {
+      font-family: 'Cinzel', serif;
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--pc, var(--torch));
+      letter-spacing: .08em;
+      margin-bottom: 4px;
+    }
+    .pc-desc { font-size: 12px; color: var(--parchment-dim); line-height: 1.4; }
+
+    .tb-list { display: flex; flex-direction: column; gap: 6px; }
+    .tb-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 8px 10px;
+      border-radius: 3px;
+      font-size: 14px;
+      color: var(--parchment-dim);
+    }
+    .tb-row:hover { background: var(--card2); }
+    .tb-num {
+      font-family: 'Cinzel', serif;
+      font-size: 16px;
+      font-weight: 900;
+      color: var(--gold);
+      width: 22px;
+      flex-shrink: 0;
+      text-align: center;
+    }
+
+    /* ── RULES ── */
+      .s-card { grid-template-columns: 40px 1fr; }
+      .s-score { display:none; }
+      .nav-btn { padding:14px 16px; font-size:10px; letter-spacing:.15em; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="eyebrow">Season 50 · Chaos Edition</div>
+  <div class="logo">SURVIVOR <em>50</em></div>
+  <div class="sub">Fantasy League</div>
+  <div id="ep-pill" class="ep-pill"><span class="ep-dot"></span> EPISODE 4 OF 13 COMPLETE</div>
+</header>
+
+<nav>
+  <button class="nav-btn active" onclick="showTab('scoreboard',this)">Scoreboard</button>
+  <button class="nav-btn"        onclick="showTab('rosters',this)">Rosters</button>
+  <button class="nav-btn"        onclick="showTab('rules',this)">📜 Rules</button>
+  <button class="nav-btn"        onclick="showTab('admin',this)">⚙ Admin</button>
+</nav>
+
+<main>
+  <!-- SCOREBOARD -->
+  <div id="tab-scoreboard" class="tab active">
+    <div id="standings" class="standings"></div>
+  </div>
+
+  <!-- ROSTERS -->
+  <div id="tab-rosters" class="tab">
+    <div id="rosters-grid" class="rosters-grid"></div>
+  </div>
+
+  <!-- RULES -->
+  <div id="tab-rules" class="tab">
+
+    <div class="rules-header">
+      <div class="rules-eyebrow">Official Documentation</div>
+      <h1 class="rules-title">Rules & Scoring</h1>
+      <p class="rules-tagline">Draft smart. Use your power-ups wisely. Even if your roster collapses, chaos keeps you alive.</p>
+    </div>
+
+    <div class="rules-columns">
+
+      <!-- LEFT COLUMN -->
+      <div class="rules-col">
+
+        <div class="rules-block">
+          <div class="rules-block-icon">🏝</div>
+          <h2 class="rules-block-title">League Format</h2>
+          <div class="rules-divider"></div>
+          <div class="rule-list">
+            <div class="rule-row"><span class="rule-label">Teams</span><span class="rule-val">5</span></div>
+            <div class="rule-row"><span class="rule-label">Salary Cap</span><span class="rule-val gold">$100</span></div>
+            <div class="rule-row"><span class="rule-label">Players Per Team</span><span class="rule-val">5</span></div>
+            <div class="rule-row"><span class="rule-label">Duplicates</span><span class="rule-val green">Allowed</span></div>
+            <div class="rule-row"><span class="rule-label">Draft Style</span><span class="rule-val">Sealed Bid</span></div>
+            <div class="rule-row"><span class="rule-label">Winner</span><span class="rule-val">Highest Season Points</span></div>
+          </div>
+        </div>
+
+        <div class="rules-block">
+          <div class="rules-block-icon">⚔️</div>
+          <h2 class="rules-block-title">Challenges</h2>
+          <div class="rules-divider"></div>
+          <div class="rules-phase-label">Pre-Merge</div>
+          <div class="rule-list">
+            <div class="rule-row"><span class="rule-label">Team Immunity Win</span><span class="rule-val green">+5</span></div>
+          </div>
+          <div class="rules-phase-label" style="margin-top:14px;">Post-Merge</div>
+          <div class="rule-list">
+            <div class="rule-row"><span class="rule-label">Individual Immunity Win</span><span class="rule-val green">+10</span></div>
+            <div class="rule-row"><span class="rule-label">Individual Reward Win</span><span class="rule-val green">+5</span></div>
+          </div>
+        </div>
+
+        <div class="rules-block">
+          <div class="rules-block-icon">🗳</div>
+          <h2 class="rules-block-title">Tribal Council</h2>
+          <div class="rules-divider"></div>
+          <div class="rule-list">
+            <div class="rule-row"><span class="rule-label">Survives Tribal Council</span><span class="rule-val green">+3</span></div>
+            <div class="rule-row"><span class="rule-label">Receives 2+ Votes & Survives</span><span class="rule-val green">+5</span></div>
+            <div class="rule-row"><span class="rule-label">Voted Out</span><span class="rule-val red">−7</span></div>
+          </div>
+        </div>
+
+        <div class="rules-block">
+          <div class="rules-block-icon">🏆</div>
+          <h2 class="rules-block-title">Milestone Bonuses</h2>
+          <div class="rules-sub">Awarded Once Per Player</div>
+          <div class="rules-divider"></div>
+          <div class="rule-list milestone-list">
+            <div class="rule-row milestone"><span class="rule-label">Makes Jury</span><span class="rule-val gold">+10</span></div>
+            <div class="rule-row milestone"><span class="rule-label">Reaches Final Tribal</span><span class="rule-val gold">+20</span></div>
+            <div class="rule-row milestone winner-row"><span class="rule-label">🔥 Wins Survivor</span><span class="rule-val" style="color:#fff;font-size:22px;">+35</span></div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- RIGHT COLUMN -->
+      <div class="rules-col">
+
+        <div class="rules-block">
+          <div class="rules-block-icon">🗺</div>
+          <h2 class="rules-block-title">Advantages & Gameplay</h2>
+          <div class="rules-divider"></div>
+          <div class="rule-list">
+            <div class="rule-row"><span class="rule-label">Finds Idol or Advantage</span><span class="rule-val green">+5</span></div>
+            <div class="rule-row"><span class="rule-label">Plays Idol/Advantage Correctly</span><span class="rule-val green">+15</span></div>
+            <div class="rule-row"><span class="rule-label">Idol Misplay</span><span class="rule-val red">−5</span></div>
+          </div>
+          <div class="rule-sep"></div>
+          <div class="rule-list">
+            <div class="rule-row"><span class="rule-label">Successful Shot in the Dark</span><span class="rule-val green">+10</span></div>
+            <div class="rule-row"><span class="rule-label">Failed Shot in the Dark</span><span class="rule-val red">−5</span></div>
+          </div>
+        </div>
+
+        <div class="rules-block">
+          <div class="rules-block-icon">💀</div>
+          <h2 class="rules-block-title">Eliminated Player Rules</h2>
+          <div class="rules-divider"></div>
+          <div class="rules-prose">
+            When one of your drafted players is voted out:
+          </div>
+          <div class="rule-list" style="margin-top:10px;">
+            <div class="rule-row"><span class="rule-label">Elimination penalty</span><span class="rule-val red">−7</span></div>
+            <div class="rule-row"><span class="rule-label">Keep all prior points?</span><span class="rule-val green">Yes</span></div>
+            <div class="rule-row"><span class="rule-label">Future scoring?</span><span class="rule-val red">Stopped</span></div>
+            <div class="rule-row"><span class="rule-label">Returns via twist?</span><span class="rule-val green">Resumes normally</span></div>
+          </div>
+        </div>
+
+        <div class="rules-block ghost-rules-block">
+          <div class="rules-block-icon">👻</div>
+          <h2 class="rules-block-title">Ghost Slot</h2>
+          <div class="rules-sub">Keeps Everyone Alive</div>
+          <div class="rules-divider"></div>
+          <div class="rules-prose">
+            If your team has at least <strong>1 eliminated player</strong>, you unlock a Ghost Slot. Each episode, pick ONE active contestant not on your roster.
+          </div>
+          <div class="rule-list" style="margin-top:12px;">
+            <div class="rule-row"><span class="rule-label">Must declare</span><span class="rule-val">Before episode airs</span></div>
+            <div class="rule-row"><span class="rule-label">Duplicates</span><span class="rule-val green">Allowed</span></div>
+            <div class="rule-row"><span class="rule-label">Earnings (1–2 out)</span><span class="rule-val gold">50% of ep points</span></div>
+            <div class="rule-row"><span class="rule-label">Milestone bonuses</span><span class="rule-val red">Not eligible</span></div>
+          </div>
+          <div class="underdog-boost">
+            <div class="ub-title">⚡ Underdog Boost</div>
+            <div class="ub-text">3+ eliminated players → Ghost earns <strong>100%</strong> of episode points (still no milestones)</div>
+          </div>
+        </div>
+
+        <div class="rules-block">
+          <div class="rules-block-icon">⚡</div>
+          <h2 class="rules-block-title">Power-Ups</h2>
+          <div class="rules-sub">2 Per Team · Must Declare Before Episode · No Stacking</div>
+          <div class="rules-divider"></div>
+          <div class="power-cards">
+            <div class="power-card" style="--pc:var(--torch)">
+              <div class="pc-name">Double Tribal</div>
+              <div class="pc-desc">Double all points earned that episode</div>
+            </div>
+            <div class="power-card" style="--pc:var(--green)">
+              <div class="pc-name">Safety Shield</div>
+              <div class="pc-desc">Cancel all negative points that episode</div>
+            </div>
+            <div class="power-card" style="--pc:var(--gold)">
+              <div class="pc-name">Blindside Boost</div>
+              <div class="pc-desc">Correct idol play is worth +25 instead of +15</div>
+            </div>
+            <div class="power-card" style="--pc:var(--purple)">
+              <div class="pc-name">Chaos Swap</div>
+              <div class="pc-desc">Swap one player's episode score with another team's player</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="rules-block tiebreak-block">
+          <div class="rules-block-icon">⚖️</div>
+          <h2 class="rules-block-title">Tiebreakers</h2>
+          <div class="rules-divider"></div>
+          <div class="tb-list">
+            <div class="tb-row"><span class="tb-num">1</span><span>Most points from Sole Survivor winner</span></div>
+            <div class="tb-row"><span class="tb-num">2</span><span>Most Immunity Wins</span></div>
+            <div class="tb-row"><span class="tb-num">3</span><span>Most Correct Idol Plays</span></div>
+            <div class="tb-row"><span class="tb-num">4</span><span>Commissioner coin flip</span></div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- ADMIN -->
+  <div id="tab-admin" class="tab">
+
+    <!-- Settings -->
+    <div class="admin-block">
+      <h3>⚙ League Settings</h3>
+      <div class="settings-row">
+        <div class="field" style="width:180px;">
+          <label>Current Episode</label>
+          <input type="number" id="set-episode" min="1" max="13">
+        </div>
+        <div class="field" style="width:200px;">
+          <label>Game Phase</label>
+          <select id="set-phase">
+            <option value="pre-merge">Pre-Merge</option>
+            <option value="post-merge">Post-Merge</option>
+          </select>
+        </div>
+      </div>
+      <div class="btn-row">
+        <button class="btn btn-sm btn-gold" onclick="saveSettings()">Save Settings</button>
+      </div>
+    </div>
+
+    <!-- Add / Edit Episode Scores -->
+    <div class="admin-block">
+      <h3>📺 Episode Scores</h3>
+      <p class="admin-note">Select an episode, enter each player's total points for that episode, then save.</p>
+      <div class="settings-row">
+        <div class="field" style="width:180px;">
+          <label>Episode</label>
+          <select id="admin-ep-select" onchange="loadEpScores()">
+          </select>
+        </div>
+      </div>
+      <div id="player-score-grid" class="player-score-grid"></div>
+      <div class="btn-row">
+        <button class="btn btn-sm" onclick="saveEpScores()">Save Episode Scores</button>
+        <button class="btn btn-sm btn-gold" onclick="addNewEp()">+ New Episode</button>
+      </div>
+    </div>
+
+    <!-- Ghost Slot Manager -->
+    <div class="admin-block">
+      <h3>👻 Ghost Slot Manager</h3>
+      <p class="admin-note">Manage Ghost Slot picks and earned points per team per episode.</p>
+      <div class="settings-row">
+        <div class="field" style="width:180px;">
+          <label>Episode</label>
+          <select id="ghost-ep-select" onchange="loadGhostData()"></select>
+        </div>
+      </div>
+      <div id="ghost-admin-grid" class="ghost-admin-grid"></div>
+      <div class="btn-row">
+        <button class="btn btn-sm" onclick="saveGhostData()">Save Ghost Data</button>
+      </div>
+    </div>
+
+    <!-- Player Status -->
+    <div class="admin-block">
+      <h3>🗳 Player Status</h3>
+      <p class="admin-note">Update player statuses. "Eliminated" includes the -7 in their episode score (enter it manually above).</p>
+      <div id="status-grid" class="status-grid"></div>
+      <div class="btn-row">
+        <button class="btn btn-sm btn-gold" onclick="saveStatuses()">Save All Statuses</button>
+      </div>
+    </div>
+
+    <!-- Power-up Tracker -->
+    <div class="admin-block">
+      <h3>⚡ Power-Up Tracker</h3>
+      <p class="admin-note">Track each team's power-up usage.</p>
+      <div id="power-admin-grid" class="ghost-admin-grid"></div>
+      <div class="btn-row">
+        <button class="btn btn-sm btn-gold" onclick="savePowerUps()">Save Power-Up Data</button>
+      </div>
+    </div>
+
+    <!-- Reset -->
+    <div class="admin-block">
+      <h3>⚠ Danger Zone</h3>
+      <button class="btn" style="border-color:#c05050;color:#c05050;" onclick="resetData()">Reset All Data to Default</button>
+    </div>
+
+  </div>
+</main>
+
+<div id="toast" class="toast">Saved!</div>
+
+<script>
+/* ═══════════════════════════════════════════════════════
+   DEFAULT GAME DATA
+═══════════════════════════════════════════════════════ */
+const DEFAULT_DATA = {
+  meta: { currentEpisode: 4, totalEpisodes: 13, phase: 'pre-merge' },
+
+  teams: [
+    {
+      id: 'smith', name: 'Smith Tribe', owner: 'Smith', color: '#E85D04',
+      players: ['aubry','jonathan','charlie','coach','mike'],
+      ghostSlot: { enabled: false, picks: {} },
+      powerUps: { remaining: 2, used: [] }
+    },
+    {
+      id: 'ladner', name: 'Ladner Tribe', owner: 'Ladner', color: '#3A9E50',
+      players: ['cirie','rizo','christian','genevieve','jonathan'],
+      ghostSlot: { enabled: false, picks: {} },
+      powerUps: { remaining: 2, used: [] }
+    },
+    {
+      id: 'ross', name: 'Ross Tribe', owner: 'Ross', color: '#2080C8',
+      players: ['cirie','christian','jonathan','coach','mike'],
+      ghostSlot: { enabled: false, picks: {} },
+      powerUps: { remaining: 2, used: [] }
+    },
+    {
+      id: 'sasser', name: 'Sasser Tribe', owner: 'Sasser', color: '#9A4DD0',
+      players: ['cirie','joe','jonathan','coach','rizo'],
+      ghostSlot: { enabled: false, picks: {} },
+      powerUps: { remaining: 2, used: [] }
+    },
+    {
+      id: 'etheredge', name: 'Etheredge Tribe', owner: 'Etheredge', color: '#D4A017',
+      players: ['kyle','joe','coach','rizo','jonathan'],
+      ghostSlot: {
+        enabled: true,
+        picks: {
+          '2': { player: 'Q Burdette', points: 2 },
+          '3': { player: 'Q Burdette', points: 0 }
+        }
+      },
+      powerUps: { remaining: 2, used: [] }
+    }
+  ],
+
+  players: {
+    aubry:     { name: 'Aubry Bracco',     salary: 38, status: 'active',     scores: {1:5,2:5,3:5,4:5} },
+    jonathan:  { name: 'Jonathan Young',   salary: 18, status: 'active',     scores: {1:5,2:5,3:5,4:5} },
+    charlie:   { name: 'Charlie Davis',    salary: 18, status: 'active',     scores: {1:5,2:5,3:5,4:5} },
+    coach:     { name: 'Coach Wade',       salary: 10, status: 'active',     scores: {1:5,2:5,3:5,4:5} },
+    mike:      { name: 'Mike White',       salary:  7, status: 'eliminated', scores: {1:5,2:5,3:3,4:-7} },
+    cirie:     { name: 'Cirie Fields',     salary: 38, status: 'active',     scores: {1:3,2:3,3:5,4:5} },
+    rizo:      { name: 'Rizo Velovic',     salary:  7, status: 'active',     scores: {1:5,2:5,3:5,4:5} },
+    christian: { name: 'Christian Hubicki',salary: 27, status: 'active',     scores: {1:3,2:8,3:3,4:3} },
+    genevieve: { name: 'Genevieve Mushaluk',salary:10, status: 'active',     scores: {1:10,2:5,3:5,4:10} },
+    joe:       { name: 'Joe Hunter',       salary: 27, status: 'active',     scores: {1:3,2:3,3:5,4:5} },
+    kyle:      { name: 'Kyle Fraser',      salary: 38, status: 'eliminated', scores: {1:5,2:0} }
+  }
+};
+
+/* ═══════════════════════════════════════════════════════
+   DATA LAYER
+═══════════════════════════════════════════════════════ */
+function loadData() {
+  try {
+    const raw = localStorage.getItem('survivor50_v2');
+    return raw ? JSON.parse(raw) : JSON.parse(JSON.stringify(DEFAULT_DATA));
+  } catch(e) { return JSON.parse(JSON.stringify(DEFAULT_DATA)); }
+}
+function saveData(d) {
+  localStorage.setItem('survivor50_v2', JSON.stringify(d));
+}
+function resetData() {
+  if (!confirm('Reset ALL data to defaults? This cannot be undone.')) return;
+  localStorage.removeItem('survivor50_v2');
+  toast('Data reset to defaults');
+  renderAll();
+  initAdmin();
+}
+
+/* ═══════════════════════════════════════════════════════
+   CALCULATIONS
+═══════════════════════════════════════════════════════ */
+function playerTotal(pid, data) {
+  const p = data.players[pid];
+  if (!p) return 0;
+  return Object.values(p.scores || {}).reduce((a,b) => a+b, 0);
+}
+
+function teamTotal(team, data) {
+  let total = team.players.reduce((sum, pid) => sum + playerTotal(pid, data), 0);
+  // Add ghost slot points
+  if (team.ghostSlot && team.ghostSlot.picks) {
+    Object.values(team.ghostSlot.picks).forEach(pick => {
+      total += (pick.points || 0);
+    });
+  }
+  return total;
+}
+
+function teamEpTotal(team, ep, data) {
+  let total = team.players.reduce((sum, pid) => {
+    const p = data.players[pid];
+    return sum + (p && p.scores ? (p.scores[ep] || 0) : 0);
+  }, 0);
+  if (team.ghostSlot && team.ghostSlot.picks && team.ghostSlot.picks[ep]) {
+    total += (team.ghostSlot.picks[ep].points || 0);
+  }
+  return total;
+}
+
+function sortedTeams(data) {
+  return [...data.teams].sort((a,b) => teamTotal(b,data) - teamTotal(a,data));
+}
+
+function activeCount(team, data) {
+  return team.players.filter(pid => {
+    const p = data.players[pid];
+    return p && (p.status === 'active' || p.status === 'jury' || p.status === 'finalist' || p.status === 'winner');
+  }).length;
+}
+
+function eliminatedCount(team, data) {
+  return team.players.filter(pid => {
+    const p = data.players[pid];
+    return p && p.status === 'eliminated';
+  }).length;
+}
+
+/* ═══════════════════════════════════════════════════════
+   RENDER — SCOREBOARD
+═══════════════════════════════════════════════════════ */
+function renderScoreboard() {
+  const data = loadData();
+  const sorted = sortedTeams(data);
+  const maxPts = Math.max(...data.teams.map(t => teamTotal(t, data)));
+  const epCount = data.meta.currentEpisode;
+
+  // Update episode pill
+  document.getElementById('ep-pill').innerHTML =
+    `<span class="ep-dot"></span> EPISODE ${epCount} OF ${data.meta.totalEpisodes} COMPLETE`;
+
+  const container = document.getElementById('standings');
+  container.innerHTML = sorted.map((team, i) => {
+    const total = teamTotal(team, data);
+    const barPct = maxPts > 0 ? Math.round((total / maxPts) * 100) : 0;
+    const elim = eliminatedCount(team, data);
+    const active = activeCount(team, data);
+
+    // Episode totals
+    const epPips = Array.from({length: epCount}, (_,j) => {
+      const ep = j+1;
+      const epT = teamEpTotal(team, ep, data);
+      return `<span class="ep-pip ${epT < 0 ? 'neg' : ''}">${epT > 0 ? '+' : ''}${epT}</span>`;
+    }).join('');
+    const epLabel = Array.from({length: epCount}, (_,j) =>
+      `<span class="ep-pip label">E${j+1}</span>`
+    ).join('');
+
+    const rankDisplay = i === 0
+      ? `<div class="flame">🔥</div>`
+      : `<div class="rank-num ${i < 2 ? 'top':''}">${i+1}</div>`;
+
+    return `
+    <div class="s-card ${i===0?'rank1':''}" style="--team-color:${team.color};">
+      ${rankDisplay}
+      <div class="s-info">
+        <h2>${team.name}</h2>
+        <div class="s-meta">
+          <span style="color:${team.color}">${team.owner}</span>
+          <span class="eliminated-badge eb-active">Active: ${active}</span>
+          ${elim > 0 ? `<span class="eliminated-badge eb-dead">Out: ${elim}</span>` : ''}
+        </div>
+        <div class="ep-scores">
+          <div class="ep-pip label" style="font-size:8px;color:var(--smoke);padding-right:4px;">EP→</div>
+          ${epPips}
+        </div>
+        <div class="s-bar"><div class="s-bar-fill" style="width:${barPct}%;background:${team.color};"></div></div>
+      </div>
+      <div class="s-score">
+        <div class="s-pts">${total}</div>
+        <span class="s-pts-label">Points</span>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+/* ═══════════════════════════════════════════════════════
+   RENDER — ROSTERS
+═══════════════════════════════════════════════════════ */
+function renderRosters() {
+  const data = loadData();
+  const container = document.getElementById('rosters-grid');
+
+  container.innerHTML = data.teams.map(team => {
+    const total = teamTotal(team, data);
+
+    const playerRows = team.players.map(pid => {
+      const p = data.players[pid];
+      if (!p) return '';
+      const pTotal = playerTotal(pid, data);
+      const dotClass = `dot-${p.status}`;
+      const isDead = p.status === 'eliminated';
+      const statusText = p.status === 'active' ? '' :
+        p.status === 'eliminated' ? '💀 Voted Out' :
+        p.status === 'jury' ? '⚖ Jury' :
+        p.status === 'finalist' ? '🏆 Finalist' :
+        p.status === 'winner' ? '👑 WINNER' : '';
+      return `
+      <div class="p-row ${isDead ? 'dead' : ''}">
+        <div class="p-dot ${dotClass}"></div>
+        <div class="p-info">
+          <div class="p-name">${p.name}</div>
+          <div class="p-sub">$${p.salary} · ${statusText || 'Active'}</div>
+        </div>
+        <div class="p-pts ${pTotal < 0 ? 'neg' : ''}">${pTotal}</div>
+      </div>`;
+    }).join('');
+
+    // Ghost Slot
+    let ghostHtml = '';
+    if (team.ghostSlot && team.ghostSlot.enabled) {
+      const picks = team.ghostSlot.picks || {};
+      const pickLines = Object.entries(picks).map(([ep, pick]) =>
+        `Ep${ep}: ${pick.player} (+${pick.points}pts)`
+      ).join(' · ') || 'No picks yet';
+      const elimCount = eliminatedCount(team, data);
+      ghostHtml = `
+      <div class="ghost-bar">
+        <span class="ghost-title">👻 Ghost Slot — ${elimCount >= 3 ? '100%' : '50%'} Earnings</span>
+        <div class="ghost-pick">${pickLines}</div>
+      </div>`;
+    }
+
+    // Power-ups
+    const puRemaining = team.powerUps ? team.powerUps.remaining : 2;
+    const pips = Array.from({length:2}, (_,i) =>
+      `<div class="power-pip ${i >= puRemaining ? 'used' : ''}"></div>`
+    ).join('');
+
+    return `
+    <div class="r-card">
+      <div class="r-head" style="border-bottom-color:${team.color};">
+        <div class="r-head-info">
+          <h3>${team.name}</h3>
+          <div class="r-owner">${team.owner}</div>
+        </div>
+        <div>
+          <div class="r-total">${total}</div>
+          <div class="r-total-label">pts</div>
+        </div>
+      </div>
+      <div class="player-list">${playerRows}</div>
+      ${ghostHtml}
+      <div class="power-bar">
+        <span class="power-title">⚡ Power-Ups Remaining</span>
+        <div class="power-pips">${pips}</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+/* ═══════════════════════════════════════════════════════
+   ADMIN — INIT
+═══════════════════════════════════════════════════════ */
+function initAdmin() {
+  const data = loadData();
+
+  // Settings
+  document.getElementById('set-episode').value = data.meta.currentEpisode;
+  document.getElementById('set-phase').value = data.meta.phase;
+
+  // Episode selects
+  populateEpSelects(data);
+
+  // Player status grid
+  renderStatusGrid(data);
+
+  // Power-up admin
+  renderPowerAdmin(data);
+}
+
+function populateEpSelects(data) {
+  const eps = Array.from({length: data.meta.totalEpisodes}, (_,i) => i+1);
+  ['admin-ep-select','ghost-ep-select'].forEach(id => {
+    const sel = document.getElementById(id);
+    sel.innerHTML = eps.map(e => `<option value="${e}" ${e === data.meta.currentEpisode ? 'selected' : ''}>Episode ${e}</option>`).join('');
+  });
+  loadEpScores();
+  loadGhostData();
+}
+
+function loadEpScores() {
+  const data = loadData();
+  const ep = parseInt(document.getElementById('admin-ep-select').value);
+  const grid = document.getElementById('player-score-grid');
+
+  // All unique players
+  const allPids = [...new Set(data.teams.flatMap(t => t.players))];
+
+  grid.innerHTML = allPids.map(pid => {
+    const p = data.players[pid];
+    if (!p) return '';
+    const score = (p.scores && p.scores[ep] !== undefined) ? p.scores[ep] : '';
+    const dotClass = `dot-${p.status}`;
+    return `
+    <div class="ps-item">
+      <div class="p-dot ${dotClass}"></div>
+      <div>
+        <div class="ps-name">${p.name}</div>
+        <div class="ps-status">${p.status.toUpperCase()}</div>
+      </div>
+      <input class="ps-input" type="number" id="score-${pid}" value="${score}" placeholder="0">
+    </div>`;
+  }).join('');
+}
+
+function saveEpScores() {
+  const data = loadData();
+  const ep = parseInt(document.getElementById('admin-ep-select').value);
+  const allPids = [...new Set(data.teams.flatMap(t => t.players))];
+
+  allPids.forEach(pid => {
+    const input = document.getElementById(`score-${pid}`);
+    if (!input || input.value === '') return;
+    if (!data.players[pid]) return;
+    if (!data.players[pid].scores) data.players[pid].scores = {};
+    data.players[pid].scores[ep] = parseInt(input.value) || 0;
+  });
+
+  saveData(data);
+  toast('Episode scores saved!');
+  renderAll();
+}
+
+function addNewEp() {
+  const data = loadData();
+  data.meta.currentEpisode = Math.min(data.meta.currentEpisode + 1, data.meta.totalEpisodes);
+  saveData(data);
+  populateEpSelects(data);
+  document.getElementById('admin-ep-select').value = data.meta.currentEpisode;
+  document.getElementById('set-episode').value = data.meta.currentEpisode;
+  loadEpScores();
+  toast(`Episode ${data.meta.currentEpisode} added!`);
+  renderAll();
+}
+
+function loadGhostData() {
+  const data = loadData();
+  const ep = parseInt(document.getElementById('ghost-ep-select').value);
+  const grid = document.getElementById('ghost-admin-grid');
+
+  grid.innerHTML = data.teams.map((team, ti) => {
+    const pick = team.ghostSlot && team.ghostSlot.picks && team.ghostSlot.picks[ep]
+      ? team.ghostSlot.picks[ep] : { player: '', points: 0 };
+    const enabled = team.ghostSlot && team.ghostSlot.enabled;
+    return `
+    <div class="ghost-team-block">
+      <div class="ghost-team-name" style="color:${team.color}">${team.name}</div>
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
+        <label style="font-size:13px;">Ghost Slot Active</label>
+        <input type="checkbox" id="ghost-enabled-${ti}" ${enabled ? 'checked' : ''}>
+      </div>
+      <div class="ghost-fields">
+        <div class="field" style="flex:1;">
+          <label>Ghost Pick (player name)</label>
+          <input type="text" id="ghost-player-${ti}" value="${pick.player}" placeholder="e.g. Q Burdette">
+        </div>
+        <div class="field" style="width:80px;">
+          <label>Points</label>
+          <input type="number" id="ghost-pts-${ti}" value="${pick.points}" placeholder="0">
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function saveGhostData() {
+  const data = loadData();
+  const ep = parseInt(document.getElementById('ghost-ep-select').value).toString();
+
+  data.teams.forEach((team, ti) => {
+    const enabled = document.getElementById(`ghost-enabled-${ti}`).checked;
+    const player = document.getElementById(`ghost-player-${ti}`).value.trim();
+    const pts = parseInt(document.getElementById(`ghost-pts-${ti}`).value) || 0;
+
+    if (!team.ghostSlot) team.ghostSlot = { enabled: false, picks: {} };
+    team.ghostSlot.enabled = enabled;
+    if (!team.ghostSlot.picks) team.ghostSlot.picks = {};
+    if (player) team.ghostSlot.picks[ep] = { player, points: pts };
+    else delete team.ghostSlot.picks[ep];
+  });
+
+  saveData(data);
+  toast('Ghost Slot data saved!');
+  renderAll();
+}
+
+function renderStatusGrid(data) {
+  const statuses = ['active','eliminated','jury','finalist','winner'];
+  const grid = document.getElementById('status-grid');
+  const allPids = [...new Set(data.teams.flatMap(t => t.players))];
+
+  grid.innerHTML = allPids.map(pid => {
+    const p = data.players[pid];
+    if (!p) return '';
+    const dotClass = `dot-${p.status}`;
+    return `
+    <div class="status-item">
+      <div class="p-dot ${dotClass}" id="sdot-${pid}"></div>
+      <div class="si-name">${p.name}</div>
+      <select id="status-${pid}" onchange="updateDot('${pid}')">
+        ${statuses.map(s => `<option value="${s}" ${p.status===s?'selected':''}>${s.charAt(0).toUpperCase()+s.slice(1)}</option>`).join('')}
+      </select>
+    </div>`;
+  }).join('');
+}
+
+function updateDot(pid) {
+  const sel = document.getElementById(`status-${pid}`);
+  const dot = document.getElementById(`sdot-${pid}`);
+  if (dot) {
+    dot.className = `p-dot dot-${sel.value}`;
+  }
+}
+
+function saveStatuses() {
+  const data = loadData();
+  const allPids = [...new Set(data.teams.flatMap(t => t.players))];
+  allPids.forEach(pid => {
+    const sel = document.getElementById(`status-${pid}`);
+    if (sel && data.players[pid]) data.players[pid].status = sel.value;
+  });
+  saveData(data);
+  toast('Player statuses saved!');
+  renderAll();
+}
+
+function renderPowerAdmin(data) {
+  const grid = document.getElementById('power-admin-grid');
+  const types = ['Double Tribal','Safety Shield','Blindside Boost','Chaos Swap'];
+
+  grid.innerHTML = data.teams.map((team, ti) => {
+    const rem = team.powerUps ? team.powerUps.remaining : 2;
+    return `
+    <div class="ghost-team-block">
+      <div class="ghost-team-name" style="color:${team.color}">${team.name}</div>
+      <div class="field">
+        <label>Power-Ups Remaining (0-2)</label>
+        <input type="number" id="pu-${ti}" min="0" max="2" value="${rem}" style="width:80px;">
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function savePowerUps() {
+  const data = loadData();
+  data.teams.forEach((team, ti) => {
+    const input = document.getElementById(`pu-${ti}`);
+    if (input) {
+      if (!team.powerUps) team.powerUps = { remaining: 2, used: [] };
+      team.powerUps.remaining = Math.max(0, Math.min(2, parseInt(input.value) || 0));
+    }
+  });
+  saveData(data);
+  toast('Power-ups saved!');
+  renderRosters();
+}
+
+function saveSettings() {
+  const data = loadData();
+  data.meta.currentEpisode = parseInt(document.getElementById('set-episode').value) || data.meta.currentEpisode;
+  data.meta.phase = document.getElementById('set-phase').value;
+  saveData(data);
+  populateEpSelects(data);
+  toast('Settings saved!');
+  renderAll();
+}
+
+/* ═══════════════════════════════════════════════════════
+   HELPERS
+═══════════════════════════════════════════════════════ */
+function showTab(id, btn) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById(`tab-${id}`).classList.add('active');
+  if (btn) btn.classList.add('active');
+  if (id === 'scoreboard') renderScoreboard();
+  if (id === 'rosters') renderRosters();
+}
+
+function toast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  setTimeout(() => el.classList.remove('show'), 2500);
+}
+
+function renderAll() {
+  renderScoreboard();
+  renderRosters();
+  const data = loadData();
+  renderStatusGrid(data);
+  renderPowerAdmin(data);
+}
+
+/* ═══════════════════════════════════════════════════════
+   INIT
+═══════════════════════════════════════════════════════ */
+renderAll();
+initAdmin();
+</script>
+</body>
+</html>
